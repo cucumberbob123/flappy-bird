@@ -152,5 +152,4 @@ def restartGame():
 main.after(FRAMERATE, birdDown)
 main.after(FRAMERATE, pipesMotion)
 main.after(FRAMERATE, detectCollision)
-p
 main.mainloop()

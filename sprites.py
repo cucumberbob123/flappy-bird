@@ -8,31 +8,35 @@ class Bird(object):
         self.y = y
         self.canvas = canvas
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
+        self.dead = False
 
     def _down(self):
         self.y += self.speed
         self.canvas.delete(self.sprite)
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
 
-    def dead(self):
-        if self.y < 675:
-            return False
-        return True
+    def kill(self):
+        self.dead = True
 
     def update(self):
-        if not self.dead():
-            self._down()
+        #if self.y < 675:
+            #self.kill()
+        self._down()
     
     def hide(self):
         self.canvas.delete(self.sprite)
     
     def up(self, event=None):
-        self.y -= 100
+        self.y -= 50
         self.canvas.delete(self.sprite)
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
 
+    def detectCollision(self, pipe):
+        if not (self.y > pipe.y - 150 and self.y < pipe.y + 150):
+            self.dead = True
+
 class Pipe(object):
-    def __init__(self, canvas, speed=5, x=550, y=350, thickness=50, hole_size=150):
+    def __init__(self, canvas, speed=5, x=550, y=350, thickness=50, hole_size=300):
         self.speed = speed
         self.x = [x - thickness, x]
         self.y = y

@@ -27,11 +27,10 @@ canvas.pack()
 bird = Bird(canvas, BIRD_IMG, speed=1)
 
 pipes = list()
-pipes.append(Pipe(canvas, x=250, y=random.randint(50, 650), speed=1))
 pipes.append(Pipe(canvas, y=random.randint(50, 650), speed=1))
 
 def update_all():
-    if not bird.dead():
+    if not bird.dead:
         if pipes[0].x[1] < 0:
             del pipes[0]
             pipes.append(Pipe(canvas, y=random.randint(50, 650), speed=1))
@@ -39,9 +38,10 @@ def update_all():
         for pipe in pipes:
             pipe.update()
 
-        bird.update()
+        if bird.x > pipes[0].x[0] and bird.x < pipes[0].x[1]:
+            bird.detectCollision(pipes[0])
 
-        main.after(FRAMERATE // 15, update_all)
+        bird.update()
     else:
         canvas["bg"] = "black"
 
@@ -49,9 +49,15 @@ def update_all():
             pipe.hide()
         bird.hide()
 
-        canvas.create_text(250, 350, text="YOU LOSE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER)
+        canvas.create_text(250, 150, text="YOU LOSE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER)
+        canvas.create_text(250, 350, text="PRESS SPACE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER)
+        canvas.create_text(250, 450, text="TO RESTART", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER)
+
         main.unbind("<space>")
+
+    main.after(FRAMERATE // 15, update_all)
 
 update_all()
 main.bind("<space>", bird.up)
 main.mainloop()
+
