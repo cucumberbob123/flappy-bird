@@ -1,8 +1,86 @@
 import tkinter
+import random
+import time
+
+class Board(object):
+    def __init__(self, window):
+        self.window = window
+        self.canvas = tkinter.Canvas(self.window, width=500, height=700, background="#4EC0CA", bd=0, highlightthickness=0)
+        self.canvas.pack()
+
+        self.bird = Bird(self.canvas, "images/bird.gif", speed=1)
+
+        self.window.bind("<space>", self.bird.up)
+
+        self.pipes = list()
+        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+
+        self.score_text = self.canvas.create_text(20, 20, text=str(self.bird.score), font='Impact 20', fill="#ff0000")
+    
+    def update(self):
+        if not self.bird.dead:
+            if self.pipes[0].x[1] < 0:
+                del self.pipes[0]
+                self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+
+            for pipe in self.pipes:
+                pipe.update()
+
+            if self.bird.x > self.pipes[0].x[0] and self.bird.x < self.pipes[0].x[1]:
+                self.bird.detectCollision(self.pipes[0])
+
+            if self.bird.x == self.pipes[0].x[0]:
+                self.bird.score += 1 
+                self.canvas.itemconfig(self.score_text, text=str(self.bird.score))
+
+            self.bird.update()
+
+            self.window.after(4, self.update)
+
+        else:
+            self._game_over()
+
+    def _game_over(self):
+
+        self.canvas["bg"] = "black"
+
+        for pipe in self.pipes:
+            pipe.hide()
+
+        self.bird.hide()
+        del self.bird
+
+        self.canvas.delete(self.score_text)
+
+        self.lose_text = list()
+        self.lose_text.append(self.canvas.create_text(250, 150, text="YOU LOSE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
+        self.lose_text.append(self.canvas.create_text(250, 350, text="PRESS SPACE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
+        self.lose_text.append(self.canvas.create_text(250, 450, text="TO RESTART", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
+
+        self.window.unbind("<space>")
+        self.window.bind("<space>", self.restart)
+
+    def restart(self, event=None):
+        self.window.unbind("<space")
+        self.canvas["bg"] = "#4EC0CA"
+
+        self.bird = Bird(self.canvas, "images/bird.gif", speed=1)
+
+        for line in self.lose_text:
+            self.canvas.delete(line)
+
+        self.pipes = list()
+        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+
+        self.score_text = self.canvas.create_text(20, 20, text=str(self.bird.score), font='Impact 20', fill="#ff0000")
+
+        self.window.bind("<space>", self.bird.up)
+        self.update()
 
 class Bird(object):
-    def __init__(self, canvas, img, speed=5, x=100, y=300):
-        self.img = img
+    def __init__(self, canvas, img_path, speed=5, x=100, y=300):
+        self.score = 0
+        self.img = tkinter.PhotoImage(file=img_path)
         self.speed = speed
         self.x = x
         self.y = y
@@ -19,17 +97,21 @@ class Bird(object):
         self.dead = True
 
     def update(self):
-        #if self.y < 675:
-            #self.kill()
+        if self.y > 675 or self.y < 0:
+            self.kill()
         self._down()
-    
-    def hide(self):
-        self.canvas.delete(self.sprite)
-    
+
     def up(self, event=None):
         self.y -= 50
         self.canvas.delete(self.sprite)
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
+
+    def hide(self):
+        self.canvas.delete(self.sprite)
+    
+    def show(self):
+        pass
+        #self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
 
     def detectCollision(self, pipe):
         if not (self.y > pipe.y - 150 and self.y < pipe.y + 150):
