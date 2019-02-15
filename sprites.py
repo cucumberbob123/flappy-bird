@@ -8,20 +8,22 @@ class Board(object):
         self.canvas = tkinter.Canvas(self.window, width=500, height=700, background="#4EC0CA", bd=0, highlightthickness=0)
         self.canvas.pack()
 
-        self.bird = Bird(self.canvas, "images/bird.gif", speed=1)
+        self.bird = Bird(self.canvas, "images/bird.gif", g=5)
 
         self.window.bind("<space>", self.bird.up)
 
         self.pipes = list()
-        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=5))
 
         self.score_text = self.canvas.create_text(20, 20, text=str(self.bird.score), font='Impact 20', fill="#ff0000")
-    
+
     def update(self):
         if not self.bird.dead:
             if self.pipes[0].x[1] < 0:
                 del self.pipes[0]
-                self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+
+            if self.pipes[0].x[1] == 200:
+                self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=5))
 
             for pipe in self.pipes:
                 pipe.update()
@@ -30,7 +32,7 @@ class Board(object):
                 self.bird.detectCollision(self.pipes[0])
 
             if self.bird.x == self.pipes[0].x[0]:
-                self.bird.score += 1 
+                self.bird.score += 1
                 self.canvas.itemconfig(self.score_text, text=str(self.bird.score))
 
             self.bird.update()
@@ -53,7 +55,7 @@ class Board(object):
         self.canvas.delete(self.score_text)
 
         self.lose_text = list()
-        self.lose_text.append(self.canvas.create_text(250, 150, text="YOU LOSE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
+        self.lose_text.append(self.canvas.create_text(250, 150, text="HECK YOU", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
         self.lose_text.append(self.canvas.create_text(250, 350, text="PRESS SPACE", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
         self.lose_text.append(self.canvas.create_text(250, 450, text="TO RESTART", font='Impact 60', fill='#ff0000', anchor=tkinter.CENTER))
 
@@ -64,13 +66,13 @@ class Board(object):
         self.window.unbind("<space")
         self.canvas["bg"] = "#4EC0CA"
 
-        self.bird = Bird(self.canvas, "images/bird.gif", speed=1)
+        self.bird = Bird(self.canvas, "images/bird.gif", g=5)
 
         for line in self.lose_text:
             self.canvas.delete(line)
 
         self.pipes = list()
-        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=1))
+        self.pipes.append(Pipe(self.canvas, y=random.randint(50, 650), speed=5))
 
         self.score_text = self.canvas.create_text(20, 20, text=str(self.bird.score), font='Impact 20', fill="#ff0000")
 
@@ -78,10 +80,10 @@ class Board(object):
         self.update()
 
 class Bird(object):
-    def __init__(self, canvas, img_path, speed=5, x=100, y=300):
+    def __init__(self, canvas, img_path, g=5, x=100, y=300):
         self.score = 0
         self.img = tkinter.PhotoImage(file=img_path)
-        self.speed = speed
+        self.g = g
         self.x = x
         self.y = y
         self.canvas = canvas
@@ -89,7 +91,8 @@ class Bird(object):
         self.dead = False
 
     def _down(self):
-        self.y += self.speed
+        # fix
+        self.y += self.g
         self.canvas.delete(self.sprite)
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
 
@@ -102,13 +105,13 @@ class Bird(object):
         self._down()
 
     def up(self, event=None):
-        self.y -= 50
+        self.y -= self.g * 25
         self.canvas.delete(self.sprite)
         self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
 
     def hide(self):
         self.canvas.delete(self.sprite)
-    
+
     def show(self):
         pass
         #self.sprite = self.canvas.create_image(self.x, self.y, image=self.img)
@@ -130,9 +133,9 @@ class Pipe(object):
         self.bottom = self.canvas.create_rectangle(self.x[0], 700, self.x[1], self.y + self.hole_size / 2, fill="#74BF2E", outline="#74BF2E")
 
     def update(self):
-        self.x = [self.x[0] - 1, self.x[1] - 1]
+        self.x = [self.x[0] - self.speed, self.x[1] - self.speed]
         self.canvas.coords(self.top, self.x[0], 0, self.x[1], self.y - self.hole_size / 2)
-        self.canvas.coords(self.bottom, self.x[0], 700, self.x[1], self.y + self.hole_size / 2)\
+        self.canvas.coords(self.bottom, self.x[0], 700, self.x[1], self.y + self.hole_size / 2)
 
     def hide(self):
         self.canvas.delete(self.top)
